@@ -1,0 +1,50 @@
+use glam::DVec3;
+
+use crate::{
+    hit::{Hit, HitRecord},
+    ray::Ray,
+};
+
+#[derive(Clone, Copy, Debug)]
+pub struct Sphere {
+    radius: f64,
+    center: DVec3,
+}
+
+impl Sphere {
+    pub fn new(radius: f64, center: DVec3) -> Self {
+        Self { radius, center }
+    }
+}
+
+impl Hit for Sphere {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<crate::hit::HitRecord> {
+        let oc = r.origin() - self.center;
+        let a = r.direction().length().powi(2);
+        let half_b = oc.dot(r.direction());
+        let c = oc.length().powi(2) - self.radius.powi(2);
+
+        let discriminant = half_b.powi(2) - a * c;
+        if discriminant < 0.0 {
+            return None;
+        }
+
+        // Find the nearest root that lies in the acceptable range
+        let sqrtd = discriminant.sqrt();
+        let mut root = (-half_b - sqrtd) / a;
+        if root < t_min || root > t_max {
+            root = (-half_b + sqrtd) / a;
+            if root < t_min || root > t_max {
+                return None;
+            }
+        }
+
+        let root_point = r.at(root);
+        let outward_normal = (root_point - self.center) / self.radius;
+
+        let mut rec = HitRecord::new(root, root_point);
+        rec.set_face_normal(r, outward_normal);
+
+        Some(rec)
+    }
+}

@@ -2,8 +2,9 @@ use std::fmt::Display;
 
 use glam::DVec3;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Color {
-    pub rgb: DVec3,
+    rgb: DVec3,
 }
 
 impl Color {
@@ -21,6 +22,12 @@ impl Color {
 
     pub fn b(&self) -> f64 {
         self.rgb.z
+    }
+}
+
+impl From<DVec3> for Color {
+    fn from(v: DVec3) -> Self {
+        Color::new(v.x, v.y, v.z)
     }
 }
 

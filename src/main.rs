@@ -1,16 +1,40 @@
 mod color;
+mod hit;
 mod ray;
+mod sphere;
 
 use glam::DVec3;
 
 use color::Color;
 use ray::Ray;
 
+fn hit_sphere(center: DVec3, radius: f64, r: &Ray) -> f64 {
+    let oc = r.origin() - center;
+    let a = r.direction().length().powi(2);
+    let half_b = oc.dot(r.direction());
+    let c = oc.length().powi(2) - radius * radius;
+    let discriminant = half_b * half_b - a * c;
+
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-half_b - discriminant.sqrt()) / a
+    }
+}
+
 fn ray_color(r: &Ray) -> Color {
-    let unit_direction = r.direction().normalize();
-    let t = 0.5 * (unit_direction.y + 1.0);
-    let rgb = (1.0 - t) * Color::new(1.0, 1.0, 1.0).rgb + t * Color::new(0.5, 0.7, 1.0).rgb;
-    Color::new(rgb.x, rgb.y, rgb.z)
+    let t = hit_sphere(DVec3::new(0.0, 0.0, -1.0), 0.5, r);
+    let rgb = if t > 0.0 {
+        // Shade the circle based on normal direction
+        let n = (r.at(t) - DVec3::new(0.0, 0.0, -1.0)).normalize();
+        0.5 * DVec3::new(n.x + 1.0, n.y + 1.0, n.z + 1.0)
+    } else {
+        // Lerp the background based on pixel location
+        let unit_direction = r.direction().normalize();
+        let t = 0.5 * (unit_direction.y + 1.0);
+        (1.0 - t) * DVec3::new(1.0, 1.0, 1.0) + t * DVec3::new(0.5, 0.7, 1.0)
+    };
+    rgb.into()
 }
 
 fn main() -> () {
