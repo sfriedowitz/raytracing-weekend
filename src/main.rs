@@ -2,19 +2,20 @@ mod camera;
 mod color;
 mod hit;
 mod hittable;
+mod material;
 mod ray;
-mod sphere;
 mod vec;
 
 use glam::DVec3;
+use material::Scatter;
 use rand::{thread_rng, Rng};
 
 use crate::camera::Camera;
 use crate::color::{Color, ColorFormat};
 use crate::hit::Hit;
-use crate::hittable::{Hittable, World};
+use crate::hittable::{Hittable, Sphere, World};
+use crate::material::{Lambertian, Material, Metal};
 use crate::ray::Ray;
-use crate::vec::VecUtils;
 
 fn ray_color(r: &Ray, world: &World, depth: u64) -> Color {
     if depth <= 0 {
@@ -22,10 +23,12 @@ fn ray_color(r: &Ray, world: &World, depth: u64) -> Color {
         return Color::new(0.0, 0.0, 0.0);
     }
 
-    if let Some(rec) = world.hit(r, 0.0, f64::INFINITY) {
-        let target = rec.point + rec.normal + DVec3::random_in_unit_sphere();
-        let r = Ray::new(rec.point, target - rec.point);
-        0.5 * ray_color(&r, world, depth - 1)
+    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+        if let Some((attenuation, scattered)) = rec.material.scatter(r, &rec) {
+            attenuation * ray_color(&scattered, world, depth - 1)
+        } else {
+            Color::new(0.0, 0.0, 0.0)
+        }
     } else {
         let unit_direction = r.direction().normalize();
         let t = 0.5 * (unit_direction.y + 1.0);
@@ -39,12 +42,25 @@ fn main() -> () {
     const IMAGE_WIDTH: u64 = 256;
     const IMAGE_HEIGHT: u64 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u64;
     const SAMPLES_PER_PIXEL: u64 = 100;
-    const MAX_DEPTH: u64 = 5;
+    const MAX_DEPTH: u64 = 10;
 
     // World
     let mut world = World::new();
-    world.push(Hittable::sphere(DVec3::new(0.0, 0.0, -1.0), 0.5));
-    world.push(Hittable::sphere(DVec3::new(0.0, -100.5, -1.0), 100.0));
+    let mat_ground: Material = Lambertian::new(Color::new(0.8, 0.8, 0.0)).into();
+    let mat_center: Material = Lambertian::new(Color::new(0.7, 0.3, 0.3)).into();
+    let mat_left: Material = Metal::new(Color::new(0.8, 0.8, 0.8)).into();
+    let mat_right: Material = Metal::new(Color::new(0.8, 0.6, 0.2)).into();
+
+    let sphere_ground: Hittable =
+        Sphere::new(100.0, DVec3::new(0.0, -100.5, -1.0), mat_ground).into();
+    let sphere_center: Hittable = Sphere::new(0.5, DVec3::new(0.0, 0.0, -1.0), mat_center).into();
+    let sphere_left: Hittable = Sphere::new(0.5, DVec3::new(-1.0, 0.0, -1.0), mat_left).into();
+    let sphere_right: Hittable = Sphere::new(0.5, DVec3::new(1.0, 0.0, -1.0), mat_right).into();
+
+    world.push(sphere_ground);
+    world.push(sphere_center);
+    world.push(sphere_left);
+    world.push(sphere_right);
 
     // Camera
     let cam = Camera::new();
@@ -54,8 +70,8 @@ fn main() -> () {
     println!("255");
 
     let mut rng = thread_rng();
-    for j in 0..IMAGE_HEIGHT {
-        eprintln!("Scanlines remaining: {}", IMAGE_HEIGHT - j - 1);
+    for j in (0..IMAGE_HEIGHT).rev() {
+        eprintln!("Scanlines remaining: {}", j);
 
         for i in 0..IMAGE_WIDTH {
             let mut pixel_color = Color::new(0.0, 0.0, 0.0);
