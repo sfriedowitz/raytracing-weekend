@@ -16,16 +16,12 @@ impl Color {
         Self { rgb: DVec3::new(r, g, b) }
     }
 
-    pub fn r(&self) -> f64 {
-        self.rgb.x
+    pub fn increment(&mut self, rgb: RGB) {
+        self.rgb += rgb;
     }
 
-    pub fn g(&self) -> f64 {
-        self.rgb.y
-    }
-
-    pub fn b(&self) -> f64 {
-        self.rgb.z
+    pub fn normalize(&mut self, samples: u64) {
+        self.rgb = (self.rgb / samples as f64).clamp(DVec3::ZERO, DVec3::ONE);
     }
 }
 
@@ -40,9 +36,9 @@ impl Display for Color {
         write!(
             f,
             "{}, {}, {}",
-            (255.999 * self.rgb.x) as u64,
-            (255.999 * self.rgb.y) as u64,
-            (255.999 * self.rgb.z) as u64
+            (256.0 * self.rgb.x) as u64,
+            (256.0 * self.rgb.y) as u64,
+            (256.0 * self.rgb.z) as u64
         )
     }
 }

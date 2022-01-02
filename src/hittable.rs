@@ -14,8 +14,8 @@ pub enum Hittable {
 }
 
 impl Hittable {
-    pub fn sphere(radius: f64, center: DVec3) -> Self {
-        Self::Sphere(Sphere::new(radius, center))
+    pub fn sphere(center: DVec3, radius: f64) -> Self {
+        Self::Sphere(Sphere::new(center, radius))
     }
 }
 

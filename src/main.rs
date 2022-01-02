@@ -6,60 +6,62 @@ mod ray;
 mod sphere;
 
 use glam::DVec3;
+use rand::{thread_rng, Rng};
 
-use color::{Color, RGB};
-use hit::Hit;
-use hittable::{Hittable, World};
-use ray::Ray;
+use crate::camera::Camera;
+use crate::color::{Color, RGB};
+use crate::hit::Hit;
+use crate::hittable::{Hittable, World};
+use crate::ray::Ray;
 
-fn ray_color(r: &Ray, world: &World) -> Color {
-    let rgb = if let Some(record) = world.hit(r, 0.0, f64::INFINITY) {
+fn ray_rgb(r: &Ray, world: &World) -> RGB {
+    if let Some(record) = world.hit(r, 0.0, f64::INFINITY) {
         0.5 * (record.normal + RGB::new(1.0, 1.0, 1.0))
     } else {
         let unit_direction = r.direction().normalize();
         let t = 0.5 * (unit_direction.y + 1.0);
         (1.0 - t) * RGB::new(1.0, 1.0, 1.0) + t * RGB::new(0.5, 0.7, 1.0)
-    };
-
-    rgb.into()
+    }
 }
 
 fn main() -> () {
     // Image
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: u64 = 256;
-    const IMAGE_HEIGHT: u64 = (256.0 / ASPECT_RATIO) as u64;
+    const IMAGE_HEIGHT: u64 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u64;
+    const SAMPLES_PER_PIXEL: u64 = 100;
 
     // World
     let mut world = World::new();
-    world.push(Hittable::sphere(0.5, DVec3::new(0.0, 0.0, -1.0)));
-    world.push(Hittable::sphere(100.0, DVec3::new(0.0, -100.5, -1.0)));
+    world.push(Hittable::sphere(DVec3::new(0.0, 0.0, -1.0), 0.5));
+    world.push(Hittable::sphere(DVec3::new(0.0, -100.5, -1.0), 100.0));
 
     // Camera
-    let viewort_height = 2.0;
-    let viewport_width = ASPECT_RATIO * viewort_height;
-    let focal_length = 1.0;
-
-    let origin = DVec3::new(0.0, 0.0, 0.0);
-    let horizontal = DVec3::new(viewport_width, 0.0, 0.0);
-    let vertical = DVec3::new(0.0, viewort_height, 0.0);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - DVec3::new(0.0, 0.0, focal_length);
+    let cam = Camera::new();
 
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
     println!("255");
 
+    let mut rng = thread_rng();
     for j in 0..IMAGE_HEIGHT {
         eprintln!("Scanlines remaining: {}", IMAGE_HEIGHT - j - 1);
 
         for i in 0..IMAGE_WIDTH {
-            let u = (i as f64) / ((IMAGE_WIDTH - 1) as f64);
-            let v = (j as f64) / ((IMAGE_HEIGHT - 1) as f64);
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-            let r = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical - origin);
-            let pixel_color = ray_color(&r, &world);
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let random_u: f64 = rng.gen();
+                let random_v: f64 = rng.gen();
 
+                let u = ((i as f64) + random_u) / ((IMAGE_WIDTH - 1) as f64);
+                let v = ((j as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64);
+
+                let r = cam.get_ray(u, v);
+                pixel_color.increment(ray_rgb(&r, &world));
+            }
+
+            pixel_color.normalize(SAMPLES_PER_PIXEL);
             println!("{}", pixel_color);
         }
     }

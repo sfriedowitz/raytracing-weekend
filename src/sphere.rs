@@ -7,13 +7,13 @@ use crate::{
 
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere {
-    radius: f64,
     center: DVec3,
+    radius: f64,
 }
 
 impl Sphere {
-    pub fn new(radius: f64, center: DVec3) -> Self {
-        Self { radius, center }
+    pub fn new(center: DVec3, radius: f64) -> Self {
+        Self { center, radius }
     }
 }
 
