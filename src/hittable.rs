@@ -27,7 +27,6 @@ impl Hit for World {
 
 /// Enum defining all objects that can be hit by a ray.
 #[derive(Clone, Copy, Debug)]
-#[non_exhaustive]
 pub enum Hittable {
     Sphere(Sphere),
 }
@@ -42,22 +41,21 @@ impl Hit for Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         match self {
             Self::Sphere(s) => s.hit(r, t_min, t_max),
-            _ => None,
         }
     }
 }
 
-/// A hittable sphere with a radius, center, and material texture.
+/// A hittable sphere with a center position, radius, and material texture.
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere {
-    radius: f64,
     center: DVec3,
+    radius: f64,
     material: Material,
 }
 
 impl Sphere {
-    pub fn new(radius: f64, center: DVec3, material: Material) -> Self {
-        Self { radius, center, material }
+    pub fn new(center: DVec3, radius: f64, material: Material) -> Self {
+        Self { center, radius, material }
     }
 }
 

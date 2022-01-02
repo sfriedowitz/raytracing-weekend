@@ -5,15 +5,17 @@ use rand::{thread_rng, Rng};
 
 /// Helper functions for generating 3D vectors.
 pub trait VecOps {
-    fn near_zero(self) -> bool;
-
-    fn reflect(self, n: Self) -> Self;
-
     fn random(range: Range<f64>) -> Self;
 
     fn random_in_unit_sphere() -> Self;
 
     fn random_in_hemisphere(normal: Self) -> Self;
+
+    fn near_zero(self) -> bool;
+
+    fn reflect(self, n: Self) -> Self;
+
+    fn refract(self, n: Self, eta_ratio: f64) -> Self;
 }
 
 impl VecOps for DVec3 {
@@ -51,5 +53,12 @@ impl VecOps for DVec3 {
 
     fn reflect(self, n: Self) -> Self {
         self - 2.0 * self.dot(n) * n
+    }
+
+    fn refract(self, n: Self, eta_ratio: f64) -> Self {
+        let cos_theta = ((-1.0) * self).dot(n).min(1.0);
+        let r_out_perp = eta_ratio * (self + cos_theta * n);
+        let r_out_parallel = -(1.0 - r_out_perp.length().powi(2)).abs().sqrt() * n;
+        r_out_perp + r_out_parallel
     }
 }

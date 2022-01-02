@@ -48,14 +48,14 @@ fn main() -> () {
     let mut world = World::new();
     let mat_ground: Material = Lambertian::new(Color::new(0.8, 0.8, 0.0)).into();
     let mat_center: Material = Lambertian::new(Color::new(0.7, 0.3, 0.3)).into();
-    let mat_left: Material = Metal::new(Color::new(0.8, 0.8, 0.8)).into();
-    let mat_right: Material = Metal::new(Color::new(0.8, 0.6, 0.2)).into();
+    let mat_left: Material = Metal::new(Color::new(0.8, 0.8, 0.8), 0.3).into();
+    let mat_right: Material = Metal::new(Color::new(0.8, 0.6, 0.2), 1.0).into();
 
     let sphere_ground: Hittable =
-        Sphere::new(100.0, DVec3::new(0.0, -100.5, -1.0), mat_ground).into();
-    let sphere_center: Hittable = Sphere::new(0.5, DVec3::new(0.0, 0.0, -1.0), mat_center).into();
-    let sphere_left: Hittable = Sphere::new(0.5, DVec3::new(-1.0, 0.0, -1.0), mat_left).into();
-    let sphere_right: Hittable = Sphere::new(0.5, DVec3::new(1.0, 0.0, -1.0), mat_right).into();
+        Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0, mat_ground).into();
+    let sphere_center: Hittable = Sphere::new(DVec3::new(0.0, 0.0, -1.0), 0.5, mat_center).into();
+    let sphere_left: Hittable = Sphere::new(DVec3::new(-1.0, 0.0, -1.0), 0.5, mat_left).into();
+    let sphere_right: Hittable = Sphere::new(DVec3::new(1.0, 0.0, -1.0), 0.5, mat_right).into();
 
     world.push(sphere_ground);
     world.push(sphere_center);
