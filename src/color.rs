@@ -2,9 +2,13 @@ use std::fmt::Display;
 
 use glam::DVec3;
 
+/// Type alias for vector of RGB values.
+pub type RGB = DVec3;
+
+/// Simple container for an RGB vector.
 #[derive(Clone, Copy, Debug)]
 pub struct Color {
-    rgb: DVec3,
+    rgb: RGB,
 }
 
 impl Color {

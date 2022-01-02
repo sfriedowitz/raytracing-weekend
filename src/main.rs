@@ -1,47 +1,39 @@
+mod camera;
 mod color;
 mod hit;
+mod hittable;
 mod ray;
 mod sphere;
 
 use glam::DVec3;
 
-use color::Color;
+use color::{Color, RGB};
+use hit::Hit;
+use hittable::{Hittable, World};
 use ray::Ray;
 
-fn hit_sphere(center: DVec3, radius: f64, r: &Ray) -> f64 {
-    let oc = r.origin() - center;
-    let a = r.direction().length().powi(2);
-    let half_b = oc.dot(r.direction());
-    let c = oc.length().powi(2) - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-
-    if discriminant < 0.0 {
-        -1.0
+fn ray_color(r: &Ray, world: &World) -> Color {
+    let rgb = if let Some(record) = world.hit(r, 0.0, f64::INFINITY) {
+        0.5 * (record.normal + RGB::new(1.0, 1.0, 1.0))
     } else {
-        (-half_b - discriminant.sqrt()) / a
-    }
-}
-
-fn ray_color(r: &Ray) -> Color {
-    let t = hit_sphere(DVec3::new(0.0, 0.0, -1.0), 0.5, r);
-    let rgb = if t > 0.0 {
-        // Shade the circle based on normal direction
-        let n = (r.at(t) - DVec3::new(0.0, 0.0, -1.0)).normalize();
-        0.5 * DVec3::new(n.x + 1.0, n.y + 1.0, n.z + 1.0)
-    } else {
-        // Lerp the background based on pixel location
         let unit_direction = r.direction().normalize();
         let t = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - t) * DVec3::new(1.0, 1.0, 1.0) + t * DVec3::new(0.5, 0.7, 1.0)
+        (1.0 - t) * RGB::new(1.0, 1.0, 1.0) + t * RGB::new(0.5, 0.7, 1.0)
     };
+
     rgb.into()
 }
 
 fn main() -> () {
     // Image
-    const ASPECT_RATIO: f64 = 16.90 / 9.0;
+    const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: u64 = 256;
     const IMAGE_HEIGHT: u64 = (256.0 / ASPECT_RATIO) as u64;
+
+    // World
+    let mut world = World::new();
+    world.push(Hittable::sphere(0.5, DVec3::new(0.0, 0.0, -1.0)));
+    world.push(Hittable::sphere(100.0, DVec3::new(0.0, -100.5, -1.0)));
 
     // Camera
     let viewort_height = 2.0;
@@ -66,8 +58,9 @@ fn main() -> () {
             let v = (j as f64) / ((IMAGE_HEIGHT - 1) as f64);
 
             let r = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical - origin);
-            let color = ray_color(&r);
-            println!("{}", color);
+            let pixel_color = ray_color(&r, &world);
+
+            println!("{}", pixel_color);
         }
     }
 

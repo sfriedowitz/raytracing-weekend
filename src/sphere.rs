@@ -31,20 +31,20 @@ impl Hit for Sphere {
 
         // Find the nearest root that lies in the acceptable range
         let sqrtd = discriminant.sqrt();
-        let mut root = (-half_b - sqrtd) / a;
-        if root < t_min || root > t_max {
-            root = (-half_b + sqrtd) / a;
-            if root < t_min || root > t_max {
+        let mut t_root = (-half_b - sqrtd) / a;
+        if t_root < t_min || t_root > t_max {
+            t_root = (-half_b + sqrtd) / a;
+            if t_root < t_min || t_root > t_max {
                 return None;
             }
         }
 
-        let root_point = r.at(root);
+        let root_point = r.at(t_root);
         let outward_normal = (root_point - self.center) / self.radius;
 
-        let mut rec = HitRecord::new(root, root_point);
-        rec.set_face_normal(r, outward_normal);
+        let mut record = HitRecord::new(t_root, root_point);
+        record.set_face_normal(r, outward_normal);
 
-        Some(rec)
+        Some(record)
     }
 }
