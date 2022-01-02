@@ -42,9 +42,9 @@ impl Hit for Sphere {
         let root_point = r.at(t_root);
         let outward_normal = (root_point - self.center) / self.radius;
 
-        let mut record = HitRecord::new(t_root, root_point);
-        record.set_face_normal(r, outward_normal);
+        let mut rec = HitRecord::new(t_root, root_point);
+        rec.set_face_normal(r, outward_normal);
 
-        Some(record)
+        Some(rec)
     }
 }

@@ -33,16 +33,16 @@ pub type World = Vec<Hittable>;
 
 impl Hit for World {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let mut tmp_record = None;
+        let mut tmp_rec = None;
         let mut closest = t_max;
 
         for hittable in self {
-            if let Some(record) = hittable.hit(r, t_min, closest) {
-                closest = record.t;
-                tmp_record = Some(record);
+            if let Some(rec) = hittable.hit(r, t_min, closest) {
+                closest = rec.t;
+                tmp_rec = Some(rec);
             }
         }
 
-        tmp_record
+        tmp_rec
     }
 }

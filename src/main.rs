@@ -4,23 +4,32 @@ mod hit;
 mod hittable;
 mod ray;
 mod sphere;
+mod vec;
 
 use glam::DVec3;
 use rand::{thread_rng, Rng};
 
 use crate::camera::Camera;
-use crate::color::{Color, RGB};
+use crate::color::{Color, ColorFormat};
 use crate::hit::Hit;
 use crate::hittable::{Hittable, World};
 use crate::ray::Ray;
+use crate::vec::VecUtils;
 
-fn ray_rgb(r: &Ray, world: &World) -> RGB {
-    if let Some(record) = world.hit(r, 0.0, f64::INFINITY) {
-        0.5 * (record.normal + RGB::new(1.0, 1.0, 1.0))
+fn ray_color(r: &Ray, world: &World, depth: u64) -> Color {
+    if depth <= 0 {
+        // If we've exceeded the ray bounce limit, no more light is gathered
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
+    if let Some(rec) = world.hit(r, 0.0, f64::INFINITY) {
+        let target = rec.point + rec.normal + DVec3::random_in_unit_sphere();
+        let r = Ray::new(rec.point, target - rec.point);
+        0.5 * ray_color(&r, world, depth - 1)
     } else {
         let unit_direction = r.direction().normalize();
         let t = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - t) * RGB::new(1.0, 1.0, 1.0) + t * RGB::new(0.5, 0.7, 1.0)
+        (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
     }
 }
 
@@ -30,6 +39,7 @@ fn main() -> () {
     const IMAGE_WIDTH: u64 = 256;
     const IMAGE_HEIGHT: u64 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u64;
     const SAMPLES_PER_PIXEL: u64 = 100;
+    const MAX_DEPTH: u64 = 5;
 
     // World
     let mut world = World::new();
@@ -58,11 +68,10 @@ fn main() -> () {
                 let v = ((j as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64);
 
                 let r = cam.get_ray(u, v);
-                pixel_color.increment(ray_rgb(&r, &world));
+                pixel_color += ray_color(&r, &world, MAX_DEPTH);
             }
 
-            pixel_color.normalize(SAMPLES_PER_PIXEL);
-            println!("{}", pixel_color);
+            println!("{}", pixel_color.format_color(SAMPLES_PER_PIXEL));
         }
     }
 
