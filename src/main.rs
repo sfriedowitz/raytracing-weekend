@@ -97,7 +97,7 @@ fn random_scene() -> World {
 fn main() {
     // Image
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u64 = 1200;
+    const IMAGE_WIDTH: u64 = 512;
     const IMAGE_HEIGHT: u64 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u64;
     const SAMPLES_PER_PIXEL: u64 = 100;
     const MAX_DEPTH: u64 = 50;
