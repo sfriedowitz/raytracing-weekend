@@ -1,7 +1,18 @@
-# Raytracing in One Weekend: Rust Edition
+# Ray Tracing Miniseries: Rust Edition
 
-The mini series [Raytracing in One Weekend](https://misterdanb.github.io/raytracinginrust/),
+The miniseries [Ray Tracing in One Weekend](https://raytracing.github.io/),
 implemented in the Rust programming language.
 
-## Final Rendered Scene
-![random scene](https://github.com/sfriedowitz/raytracing-weekend/blob/main/images/random_scene.png)
+The series consists of three parts:
+
+1) [Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+2) [Ray Tracing The Next Week](https://raytracing.github.io/books/RayTracingTheNextWeek.html)
+3) [Ray Tracing: The Rest of Your Life](https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html)
+
+The implementation follows almost exactly as described in the book series,
+with some small twists for personal preference and optimization.
+
+## Final Scenes
+
+### Part 1
+![part1_random scene](https://github.com/sfriedowitz/raytracing-weekend/blob/main/images/part1_random_scene.png)
