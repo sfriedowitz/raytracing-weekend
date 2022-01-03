@@ -1,9 +1,8 @@
-use glam::DVec3;
-
 use crate::{
     hit::{Hit, HitRecord},
     material::Material,
     ray::Ray,
+    vec::Vec3,
 };
 
 /// Container for a collection of hittable objects.
@@ -48,13 +47,13 @@ impl Hit for Hittable {
 /// A hittable sphere with a center position, radius, and material texture.
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere {
-    center: DVec3,
+    center: Vec3,
     radius: f64,
     material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: DVec3, radius: f64, material: Material) -> Self {
+    pub fn new(center: Vec3, radius: f64, material: Material) -> Self {
         Self { center, radius, material }
     }
 }

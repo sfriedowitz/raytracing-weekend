@@ -6,7 +6,6 @@ mod material;
 mod ray;
 mod vec;
 
-use glam::DVec3;
 use material::Scatter;
 use rand::{thread_rng, Rng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -17,10 +16,10 @@ use crate::hit::Hit;
 use crate::hittable::{Sphere, World};
 use crate::material::{Dielectric, Lambertian, Metal};
 use crate::ray::Ray;
-use crate::vec::VecOps;
+use crate::vec::{Vec3, VecOps};
 
 fn ray_color(r: &Ray, world: &World, depth: u64) -> Color {
-    if depth <= 0 {
+    if depth == 0 {
         // If we've exceeded the ray bounce limit, no more light is gathered
         return Color::new(0.0, 0.0, 0.0);
     }
@@ -43,14 +42,14 @@ fn random_scene() -> World {
     let mut world = World::new();
 
     let ground_mat = Lambertian::new(Color::new(0.5, 0.5, 0.5));
-    let ground_sphere = Sphere::new(DVec3::new(0.0, -1000.0, 0.0), 1000.0, ground_mat.into());
+    let ground_sphere = Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, ground_mat.into());
 
     world.push(ground_sphere.into());
 
     for a in -11..=11 {
         for b in -11..=11 {
             let choose_mat: f64 = rng.gen();
-            let center = DVec3::new(
+            let center = Vec3::new(
                 (a as f64) + rng.gen_range(0.0..0.9),
                 0.2,
                 (b as f64) + rng.gen_range(0.0..0.9),
@@ -84,9 +83,9 @@ fn random_scene() -> World {
     let mat2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
     let mat3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
 
-    let sphere1 = Sphere::new(DVec3::new(0.0, 1.0, 0.0), 1.0, mat1.into());
-    let sphere2 = Sphere::new(DVec3::new(-4.0, 1.0, 0.0), 1.0, mat2.into());
-    let sphere3 = Sphere::new(DVec3::new(4.0, 1.0, 0.0), 1.0, mat3.into());
+    let sphere1 = Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, mat1.into());
+    let sphere2 = Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, mat2.into());
+    let sphere3 = Sphere::new(Vec3::new(4.0, 1.0, 0.0), 1.0, mat3.into());
 
     world.push(sphere1.into());
     world.push(sphere2.into());
@@ -95,7 +94,7 @@ fn random_scene() -> World {
     world
 }
 
-fn main() -> () {
+fn main() {
     // Image
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
     const IMAGE_WIDTH: u64 = 1200;
@@ -107,9 +106,9 @@ fn main() -> () {
     let world = random_scene();
 
     // Camera
-    let lookfrom = DVec3::new(13.0, 2.0, 3.0);
-    let lookat = DVec3::new(0.0, 0.0, 0.0);
-    let vup = DVec3::new(0.0, 1.0, 0.0);
+    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookat = Vec3::new(0.0, 0.0, 0.0);
+    let vup = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
 

@@ -1,7 +1,9 @@
 use std::ops::Range;
 
 use glam::DVec3;
-use rand::{thread_rng, Rng};
+use rand::Rng;
+
+pub type Vec3 = DVec3;
 
 /// Helper functions for generating 3D vectors.
 pub trait VecOps {
@@ -20,18 +22,18 @@ pub trait VecOps {
     fn refract(self, n: Self, eta_ratio: f64) -> Self;
 }
 
-impl VecOps for DVec3 {
+impl VecOps for Vec3 {
     fn random(range: Range<f64>) -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rand::thread_rng();
         let x = rng.gen_range(range.clone());
         let y = rng.gen_range(range.clone());
-        let z = rng.gen_range(range.clone());
-        DVec3::new(x, y, z)
+        let z = rng.gen_range(range);
+        Vec3::new(x, y, z)
     }
 
     fn random_in_unit_sphere() -> Self {
         loop {
-            let v = DVec3::random(-1.0..1.0);
+            let v = Vec3::random(-1.0..1.0);
             if v.length() < 1.0 {
                 return v;
             }
@@ -39,10 +41,10 @@ impl VecOps for DVec3 {
     }
 
     fn random_in_unit_disk() -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rand::thread_rng();
 
         loop {
-            let p = DVec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
+            let p = Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
             if p.length() < 1.0 {
                 return p;
             }

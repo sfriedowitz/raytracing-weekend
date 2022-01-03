@@ -1,7 +1,7 @@
-use glam::DVec3;
+use crate::vec::Vec3;
 
 /// Type alias for vector of RGB values.
-pub type Color = DVec3;
+pub type Color = Vec3;
 
 pub trait ColorFormat {
     fn format_color(&self, num_samples: u64) -> String;

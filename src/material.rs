@@ -1,7 +1,6 @@
-use glam::DVec3;
 use rand::{thread_rng, Rng};
 
-use crate::{color::Color, hit::HitRecord, ray::Ray, vec::VecOps};
+use crate::{color::Color, hit::HitRecord, ray::Ray, vec::Vec3, vec::VecOps};
 
 /// Trait for scattering off a material.
 pub trait Scatter {
@@ -58,7 +57,7 @@ impl Lambertian {
 
 impl Scatter for Lambertian {
     fn scatter(&self, _r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
-        let mut scatter_direction = rec.normal + DVec3::random_in_unit_sphere().normalize();
+        let mut scatter_direction = rec.normal + Vec3::random_in_unit_sphere().normalize();
         if scatter_direction.near_zero() {
             // Catch degenerate scatter direction (equal to normal)
             scatter_direction = rec.normal;
@@ -86,7 +85,7 @@ impl Metal {
 impl Scatter for Metal {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
         let reflected = r_in.direction().reflect(rec.normal).normalize();
-        let scattered = Ray::new(rec.point, reflected + self.fuzz * DVec3::random_in_unit_sphere());
+        let scattered = Ray::new(rec.point, reflected + self.fuzz * Vec3::random_in_unit_sphere());
 
         if scattered.direction().dot(rec.normal) > 0.0 {
             Some((self.albedo, scattered))

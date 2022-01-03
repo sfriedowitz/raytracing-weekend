@@ -1,23 +1,24 @@
-use glam::DVec3;
-
-use crate::{ray::Ray, vec::VecOps};
+use crate::{
+    ray::Ray,
+    vec::{Vec3, VecOps},
+};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Camera {
-    origin: DVec3,
-    lower_left_corner: DVec3,
-    horizontal: DVec3,
-    vertical: DVec3,
-    cu: DVec3,
-    cv: DVec3,
+    origin: Vec3,
+    lower_left_corner: Vec3,
+    horizontal: Vec3,
+    vertical: Vec3,
+    cu: Vec3,
+    cv: Vec3,
     lens_radius: f64,
 }
 
 impl Camera {
     pub fn new(
-        lookfrom: DVec3,
-        lookat: DVec3,
-        vup: DVec3,
+        lookfrom: Vec3,
+        lookat: Vec3,
+        vup: Vec3,
         vfov: f64,
         aspect_ratio: f64,
         aperture: f64,
@@ -41,14 +42,14 @@ impl Camera {
             horizontal: h,
             vertical: v,
             lower_left_corner: llc,
-            cu: cu,
-            cv: cv,
+            cu,
+            cv,
             lens_radius: aperture / 2.0,
         }
     }
 
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
-        let rd = self.lens_radius * DVec3::random_in_unit_disk();
+        let rd = self.lens_radius * Vec3::random_in_unit_disk();
         let offset = self.cu * rd.x + self.cv * rd.y;
 
         Ray::new(
