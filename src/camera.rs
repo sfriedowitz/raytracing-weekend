@@ -1,33 +1,59 @@
 use glam::DVec3;
 
-use crate::ray::Ray;
-
-const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const VIEWPORT_HEIGHT: f64 = 2.0;
-const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
-const FOCAL_LENGTH: f64 = 1.0;
+use crate::{ray::Ray, vec::VecOps};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Camera {
     origin: DVec3,
+    lower_left_corner: DVec3,
     horizontal: DVec3,
     vertical: DVec3,
-    lower_left: DVec3,
+    cu: DVec3,
+    cv: DVec3,
+    lens_radius: f64,
 }
 
 impl Camera {
-    pub fn new() -> Self {
-        let origin = DVec3::new(0.0, 0.0, 0.0);
-        let horizontal = DVec3::new(VIEWPORT_WIDTH, 0.0, 0.0);
-        let vertical = DVec3::new(0.0, VIEWPORT_HEIGHT, 0.0);
-        let lower_left =
-            origin - horizontal / 2.0 - vertical / 2.0 - DVec3::new(0.0, 0.0, FOCAL_LENGTH);
+    pub fn new(
+        lookfrom: DVec3,
+        lookat: DVec3,
+        vup: DVec3,
+        vfov: f64,
+        aspect_ratio: f64,
+        aperture: f64,
+        focus_dist: f64,
+    ) -> Camera {
+        // Vertical field-of-view in degrees
+        let theta = std::f64::consts::PI / 180.0 * vfov;
+        let viewport_height = 2.0 * (theta / 2.0).tan();
+        let viewport_width = aspect_ratio * viewport_height;
 
-        Self { origin, horizontal, vertical, lower_left }
+        let cw = (lookfrom - lookat).normalize();
+        let cu = vup.cross(cw).normalize();
+        let cv = cw.cross(cu);
+        let h = focus_dist * viewport_width * cu;
+        let v = focus_dist * viewport_height * cv;
+
+        let llc = lookfrom - h / 2.0 - v / 2.0 - focus_dist * cw;
+
+        Camera {
+            origin: lookfrom,
+            horizontal: h,
+            vertical: v,
+            lower_left_corner: llc,
+            cu: cu,
+            cv: cv,
+            lens_radius: aperture / 2.0,
+        }
     }
 
-    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
-        let direction = self.lower_left + u * self.horizontal + v * self.vertical - self.origin;
-        Ray::new(self.origin, direction)
+    pub fn get_ray(&self, s: f64, t: f64) -> Ray {
+        let rd = self.lens_radius * DVec3::random_in_unit_disk();
+        let offset = self.cu * rd.x + self.cv * rd.y;
+
+        Ray::new(
+            self.origin + offset,
+            self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
+        )
     }
 }

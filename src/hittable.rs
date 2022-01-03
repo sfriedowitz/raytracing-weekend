@@ -25,7 +25,7 @@ impl Hit for World {
     }
 }
 
-/// Enum defining all objects that can be hit by a ray.
+/// Enumeration of objects that can be hit by a ray.
 #[derive(Clone, Copy, Debug)]
 pub enum Hittable {
     Sphere(Sphere),

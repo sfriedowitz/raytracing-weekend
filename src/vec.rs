@@ -9,6 +9,8 @@ pub trait VecOps {
 
     fn random_in_unit_sphere() -> Self;
 
+    fn random_in_unit_disk() -> Self;
+
     fn random_in_hemisphere(normal: Self) -> Self;
 
     fn near_zero(self) -> bool;
@@ -32,6 +34,17 @@ impl VecOps for DVec3 {
             let v = DVec3::random(-1.0..1.0);
             if v.length() < 1.0 {
                 return v;
+            }
+        }
+    }
+
+    fn random_in_unit_disk() -> Self {
+        let mut rng = thread_rng();
+
+        loop {
+            let p = DVec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
+            if p.length() < 1.0 {
+                return p;
             }
         }
     }
