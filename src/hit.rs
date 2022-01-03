@@ -3,7 +3,7 @@ use glam::DVec3;
 use crate::material::Material;
 use crate::ray::Ray;
 
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct HitRecord {
     pub t: f64,
     pub point: DVec3,
