@@ -6,7 +6,6 @@ mod material;
 mod ray;
 mod vec;
 
-use material::Scatter;
 use rand::{thread_rng, Rng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -14,7 +13,7 @@ use crate::camera::Camera;
 use crate::color::{Color, ColorFormat};
 use crate::hit::Hit;
 use crate::hittable::{Sphere, World};
-use crate::material::{Dielectric, Lambertian, Metal};
+use crate::material::{Dielectric, Lambertian, Metal, Scatter};
 use crate::ray::Ray;
 use crate::vec::{Vec3, VecOps};
 
