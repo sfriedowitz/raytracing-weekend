@@ -3,7 +3,7 @@ use crate::{
     bvh::BVH,
     hit::{Hit, HitRecord},
     ray::Ray,
-    rectangle::Rectangle,
+    rectangle::{XYRectangle, XZRectangle, YZRectangle},
     sphere::Sphere,
 };
 
@@ -11,7 +11,9 @@ use crate::{
 #[derive(Clone, Debug)]
 pub enum Hittable {
     Sphere(Sphere),
-    Rectangle(Rectangle),
+    XYRectangle(XYRectangle),
+    XZRectangle(XZRectangle),
+    YZRectangle(YZRectangle),
     BVH(BVH),
 }
 
@@ -21,9 +23,21 @@ impl From<Sphere> for Hittable {
     }
 }
 
-impl From<Rectangle> for Hittable {
-    fn from(r: Rectangle) -> Self {
-        Self::Rectangle(r)
+impl From<XYRectangle> for Hittable {
+    fn from(r: XYRectangle) -> Self {
+        Self::XYRectangle(r)
+    }
+}
+
+impl From<XZRectangle> for Hittable {
+    fn from(r: XZRectangle) -> Self {
+        Self::XZRectangle(r)
+    }
+}
+
+impl From<YZRectangle> for Hittable {
+    fn from(r: YZRectangle) -> Self {
+        Self::YZRectangle(r)
     }
 }
 
@@ -37,7 +51,9 @@ impl Hit for Hittable {
     fn hit(&self, r: &Ray, s_min: f64, s_max: f64) -> Option<HitRecord> {
         match self {
             Self::Sphere(internal) => internal.hit(r, s_min, s_max),
-            Self::Rectangle(internal) => internal.hit(r, s_min, s_max),
+            Self::XYRectangle(internal) => internal.hit(r, s_min, s_max),
+            Self::XZRectangle(internal) => internal.hit(r, s_min, s_max),
+            Self::YZRectangle(internal) => internal.hit(r, s_min, s_max),
             Self::BVH(internal) => internal.hit(r, s_min, s_max),
         }
     }
@@ -45,7 +61,9 @@ impl Hit for Hittable {
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         match self {
             Self::Sphere(internal) => internal.bounding_box(time0, time1),
-            Self::Rectangle(internal) => internal.bounding_box(time0, time1),
+            Self::XYRectangle(internal) => internal.bounding_box(time0, time1),
+            Self::XZRectangle(internal) => internal.bounding_box(time0, time1),
+            Self::YZRectangle(internal) => internal.bounding_box(time0, time1),
             Self::BVH(internal) => internal.bounding_box(time0, time1),
         }
     }

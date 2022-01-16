@@ -12,6 +12,7 @@ mod sphere;
 mod texture;
 mod vec;
 
+use camera::CameraOptions;
 use rand::Rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use texture::{CheckerTexture, NoiseTexture};
@@ -21,34 +22,38 @@ use crate::color::{ray_color, Color, ColorFormat};
 use crate::hittable::HittableList;
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::perlin::Perlin;
-use crate::rectangle::Rectangle;
+use crate::rectangle::XYRectangle;
 use crate::sphere::Sphere;
 use crate::texture::{ImageTexture, SolidColor};
 use crate::vec::{Vec3, VecOps};
 
-fn two_spheres() -> HittableList {
+fn two_spheres() -> (HittableList, CameraOptions) {
     let texture = NoiseTexture::new(Perlin::new(), 0.5);
-    let sphere1 = Sphere::stationary(
-        Vec3::new(0.0, -10.0, 0.0),
-        10.0,
-        Lambertian::new(texture.clone().into()).into(),
-    );
-    let sphere2 =
-        Sphere::stationary(Vec3::new(0.0, 10.0, 0.0), 10.0, Lambertian::new(texture.into()).into());
+    let material = Lambertian::new(texture.into());
 
-    vec![sphere1.into(), sphere2.into()]
+    let sphere1 = Sphere::stationary(Vec3::new(0.0, -10.0, 0.0), 10.0, material.clone().into());
+    let sphere2 = Sphere::stationary(Vec3::new(0.0, 10.0, 0.0), 10.0, material.clone().into());
+
+    let world = vec![sphere1.into(), sphere2.into()];
+
+    let mut opts: CameraOptions = Default::default();
+    opts.aperture = 0.1;
+
+    (world, opts)
 }
 
-fn earth() -> HittableList {
+fn earth() -> (HittableList, CameraOptions) {
     let path =
         "/home/sfriedowitz/development/rust/raytracing_weekend/images/texture_earth_clouds.jpg";
     let earth_texture = ImageTexture::new(path);
     let earth_surface = Lambertian::new(earth_texture.into());
     let globe = Sphere::stationary(Vec3::new(0.0, 0.0, 0.0), 2.0, earth_surface.into());
-    vec![globe.into()]
+
+    let world = vec![globe.into()];
+    (world, Default::default())
 }
 
-fn simple_light() -> HittableList {
+fn simple_light() -> (HittableList, CameraOptions) {
     let noise = NoiseTexture::new(Perlin::new(), 4.0);
     let material = Lambertian::new(noise.into());
 
@@ -56,12 +61,27 @@ fn simple_light() -> HittableList {
     let sphere2 = Sphere::stationary(Vec3::new(0.0, 2.0, 0.0), 2.0, material.into());
 
     let difflight = DiffuseLight::new(SolidColor::new(Color::new(4.0, 4.0, 4.0)).into());
-    let rectangle = Rectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, difflight.into());
+    let rectangle = XYRectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, difflight.into());
 
-    vec![sphere1.into(), sphere2.into(), rectangle.into()]
+    let world = vec![sphere1.into(), sphere2.into(), rectangle.into()];
+    let opts = CameraOptions {
+        background: Color::new(0.0, 0.0, 0.0),
+        lookfrom: Vec3::new(26.0, 0.0, 0.0),
+        lookat: Vec3::new(0.0, 2.0, 0.0),
+        vup: Vec3::new(0.0, 1.0, 0.0),
+        vfov: 20.0,
+        aperture: 0.1,
+        focus_dist: 10.0,
+    };
+
+    (world, opts)
 }
 
-fn random_scene() -> HittableList {
+fn cornell_box() -> HittableList {
+    todo!()
+}
+
+fn random_scene() -> (HittableList, CameraOptions) {
     let mut rng = rand::thread_rng();
     let mut objects = HittableList::new();
 
@@ -117,29 +137,32 @@ fn random_scene() -> HittableList {
     objects.push(sphere2.into());
     objects.push(sphere3.into());
 
-    objects
+    (objects, Default::default())
 }
 
 fn main() {
     // Image
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u64 = 1024;
+    const IMAGE_WIDTH: u64 = 512;
     const IMAGE_HEIGHT: u64 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u64;
-    const SAMPLES_PER_PIXEL: u64 = 400;
+    const SAMPLES_PER_PIXEL: u64 = 50;
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let world = simple_light();
-    let background = Color::new(0.0, 0.0, 0.0);
+    let (world, opts) = two_spheres();
 
     // Camera
-    let lookfrom = Vec3::new(26.0, 3.0, 6.0);
-    let lookat = Vec3::new(0.0, 2.0, 0.0);
-    let vup = Vec3::new(0.0, 1.0, 0.0);
-    let vfov = 20.0;
-    let aperture = 0.1;
-
-    let cam = Camera::new(lookfrom, lookat, vup, 20.0, ASPECT_RATIO, aperture, vfov, 0.0, 1.0);
+    let cam = Camera::new(
+        opts.lookfrom,
+        opts.lookat,
+        opts.vup,
+        opts.vfov,
+        opts.aperture,
+        opts.focus_dist,
+        ASPECT_RATIO,
+        0.0,
+        1.0,
+    );
 
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -161,7 +184,7 @@ fn main() {
                     let v = ((j as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64);
 
                     let r = cam.get_ray(u, v);
-                    pixel_color += ray_color(&r, &world, background, MAX_DEPTH);
+                    pixel_color += ray_color(&r, &world, opts.background, MAX_DEPTH);
                 }
 
                 pixel_color

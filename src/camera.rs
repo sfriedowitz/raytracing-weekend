@@ -1,9 +1,34 @@
 use rand::Rng;
 
 use crate::{
+    color::Color,
     ray::Ray,
     vec::{Vec3, VecOps},
 };
+
+pub struct CameraOptions {
+    pub background: Color,
+    pub lookfrom: Vec3,
+    pub lookat: Vec3,
+    pub vup: Vec3,
+    pub vfov: f64,
+    pub aperture: f64,
+    pub focus_dist: f64,
+}
+
+impl Default for CameraOptions {
+    fn default() -> Self {
+        Self {
+            background: Color::new(1.0, 1.0, 1.0),
+            lookfrom: Vec3::new(13.0, 2.0, 3.0),
+            lookat: Vec3::new(0.0, 0.0, 0.0),
+            vup: Vec3::new(0.0, 1.0, 0.0),
+            vfov: 20.0,
+            aperture: 0.1,
+            focus_dist: 10.0,
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct Camera {
@@ -24,9 +49,9 @@ impl Camera {
         lookat: Vec3,
         vup: Vec3,
         vfov: f64,
-        aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
+        aspect_ratio: f64,
         time0: f64,
         time1: f64,
     ) -> Self {
