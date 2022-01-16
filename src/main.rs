@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod aabb;
 mod bvh;
 mod camera;
@@ -32,7 +34,7 @@ fn two_spheres() -> (HittableList, CameraOptions) {
     let material = Lambertian::new(texture.into());
 
     let sphere1 = Sphere::stationary(Vec3::new(0.0, -10.0, 0.0), 10.0, material.clone().into());
-    let sphere2 = Sphere::stationary(Vec3::new(0.0, 10.0, 0.0), 10.0, material.clone().into());
+    let sphere2 = Sphere::stationary(Vec3::new(0.0, 10.0, 0.0), 10.0, material.into());
 
     let world = vec![sphere1.into(), sphere2.into()];
     let opts = CameraOptions::new().with_aperture(0.1);
@@ -41,8 +43,7 @@ fn two_spheres() -> (HittableList, CameraOptions) {
 }
 
 fn earth() -> (HittableList, CameraOptions) {
-    let path =
-        "/home/sfriedowitz/development/rust/raytracing_weekend/images/texture_earth_clouds.jpg";
+    let path = "${INSERT_PATH_HERE}/images/texture_earth_clouds.jpg";
     let earth_texture = ImageTexture::new(path);
     let earth_surface = Lambertian::new(earth_texture.into());
     let globe = Sphere::stationary(Vec3::new(0.0, 0.0, 0.0), 2.0, earth_surface.into());
@@ -77,20 +78,22 @@ fn cornell_box() -> (HittableList, CameraOptions) {
     let green = Lambertian::new(SolidColor::new(Color::new(0.12, 0.45, 0.15)).into());
     let light = DiffuseLight::new(SolidColor::new(Color::new(15.0, 15.0, 15.0)).into());
 
-    let mut world: HittableList = vec![];
-    world.push(YZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, green.into()).into());
-    world.push(YZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, red.into()).into());
-    world.push(XZRectangle::new(213.0, 343.0, 227.0, 332.0, 554.0, light.into()).into());
-    world.push(XZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, white.clone().into()).into());
-    world.push(XZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone().into()).into());
-    world.push(XYRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.into()).into());
+    let world: HittableList = vec![
+        YZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, green.into()).into(),
+        YZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, red.into()).into(),
+        XZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, white.clone().into()).into(),
+        XZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone().into()).into(),
+        XYRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.into()).into(),
+        XZRectangle::new(213.0, 343.0, 227.0, 332.0, 554.0, light.into()).into(),
+    ];
 
     let opts = CameraOptions::new()
         .with_background(Color::new(0.0, 0.0, 0.0))
         .with_lookfrom(Vec3::new(278.0, 278.0, -800.0))
         .with_lookat(Vec3::new(278.0, 278.0, 0.0))
         .with_vfov(40.0)
-        .with_apsect_ratio(1.0);
+        .with_apsect_ratio(1.0)
+        .with_focus_dist(10.0);
 
     (world, opts)
 }
@@ -161,21 +164,11 @@ fn main() {
     // Image
     let image_width: u64 = 600;
     let image_height: u64 = ((image_width as f64) / opts.aspect_ratio) as u64;
-    let samples_per_pixel: u64 = 200;
+    let samples_per_pixel: u64 = 500;
     let max_depth: u64 = 50;
 
     // Camera
-    let cam = Camera::new(
-        opts.lookfrom,
-        opts.lookat,
-        opts.vup,
-        opts.vfov,
-        opts.aperture,
-        opts.focus_dist,
-        opts.aspect_ratio,
-        0.0,
-        1.0,
-    );
+    let cam = Camera::from_options(opts);
 
     println!("P3");
     println!("{} {}", image_width, image_height);

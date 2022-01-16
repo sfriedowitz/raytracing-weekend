@@ -6,6 +6,7 @@ use crate::{
     vec::{Vec3, VecOps},
 };
 
+#[derive(Clone, Copy, Debug)]
 pub struct CameraOptions {
     pub background: Color,
     pub lookfrom: Vec3,

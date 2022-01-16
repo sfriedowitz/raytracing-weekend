@@ -87,7 +87,7 @@ impl Hit for XZRectangle {
         let u = (x - self.x0) / (self.x1 - self.x0);
         let v = (z - self.z0) / (self.z1 - self.z0);
         let point = r.at(s);
-        let outward_normal = Vec3::new(0.0, 0.0, 1.0);
+        let outward_normal = Vec3::new(0.0, 1.0, 0.0);
 
         let mut rec = HitRecord::new(s, u, v, point, self.material.clone());
         rec.set_face_normal(r, outward_normal);
@@ -136,7 +136,7 @@ impl Hit for YZRectangle {
         let u = (y - self.y0) / (self.y1 - self.y0);
         let v = (z - self.z0) / (self.z1 - self.z0);
         let point = r.at(s);
-        let outward_normal = Vec3::new(0.0, 0.0, 1.0);
+        let outward_normal = Vec3::new(1.0, 0.0, 0.0);
 
         let mut rec = HitRecord::new(s, u, v, point, self.material.clone());
         rec.set_face_normal(r, outward_normal);
