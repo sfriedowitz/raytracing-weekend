@@ -4,6 +4,7 @@ mod aabb;
 mod bvh;
 mod camera;
 mod color;
+mod cornell;
 mod hit;
 mod hittable;
 mod material;
@@ -14,19 +15,17 @@ mod sphere;
 mod texture;
 mod vec;
 
-use camera::CameraOptions;
 use rand::Rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use texture::{CheckerTexture, NoiseTexture};
 
-use crate::camera::Camera;
+use crate::camera::{Camera, CameraOptions};
 use crate::color::{ray_color, Color, ColorFormat};
 use crate::hittable::HittableList;
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::perlin::Perlin;
 use crate::rectangle::{XYRectangle, XZRectangle, YZRectangle};
 use crate::sphere::Sphere;
-use crate::texture::{ImageTexture, SolidColor};
+use crate::texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor};
 use crate::vec::{Vec3, VecOps};
 
 fn two_spheres() -> (HittableList, CameraOptions) {
