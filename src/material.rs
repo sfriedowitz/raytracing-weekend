@@ -13,7 +13,7 @@ use crate::{
 pub trait Scatter {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)>;
 
-    fn emitted(&self, point: Vec3, u: f64, v: f64) -> Color {
+    fn emitted(&self, _point: Vec3, _u: f64, _v: f64) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 }

@@ -7,6 +7,7 @@ mod hittable;
 mod material;
 mod perlin;
 mod ray;
+mod rectangle;
 mod sphere;
 mod texture;
 mod vec;
@@ -114,7 +115,8 @@ fn main() {
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let world = earth();
+    let world = two_spheres();
+    let background = Color::new(0.70, 0.80, 1.00);
 
     // Camera
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
@@ -146,7 +148,7 @@ fn main() {
                     let v = ((j as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64);
 
                     let r = cam.get_ray(u, v);
-                    pixel_color += ray_color(&r, &world, MAX_DEPTH);
+                    pixel_color += ray_color(&r, &world, background, MAX_DEPTH);
                 }
 
                 pixel_color

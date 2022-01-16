@@ -17,21 +17,20 @@ impl ColorFormat for Color {
     }
 }
 
-pub fn ray_color(r: &Ray, objects: &HittableList, depth: u64) -> Color {
+pub fn ray_color(r: &Ray, world: &HittableList, background: Color, depth: u64) -> Color {
     if depth == 0 {
         // If we've exceeded the ray bounce limit, no more light is gathered
         return Color::new(0.0, 0.0, 0.0);
     }
 
-    if let Some(rec) = objects.hit(r, 0.001, f64::INFINITY) {
+    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+        let emitted = rec.material.emitted(rec.point, rec.u, rec.v);
         if let Some((attenuation, scattered)) = rec.material.scatter(r, &rec) {
-            attenuation * ray_color(&scattered, objects, depth - 1)
+            emitted + attenuation * ray_color(&scattered, world, background, depth - 1)
         } else {
-            Color::new(0.0, 0.0, 0.0)
+            emitted
         }
     } else {
-        let unit_direction = r.direction().normalize();
-        let s = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - s) * Color::new(1.0, 1.0, 1.0) + s * Color::new(0.5, 0.7, 1.0)
+        background
     }
 }
