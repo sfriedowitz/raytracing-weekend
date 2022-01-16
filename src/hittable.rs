@@ -3,6 +3,7 @@ use crate::{
     bvh::BVH,
     hit::{Hit, HitRecord},
     ray::Ray,
+    rectangle::Rectangle,
     sphere::Sphere,
 };
 
@@ -10,12 +11,19 @@ use crate::{
 #[derive(Clone, Debug)]
 pub enum Hittable {
     Sphere(Sphere),
+    Rectangle(Rectangle),
     BVH(BVH),
 }
 
 impl From<Sphere> for Hittable {
     fn from(s: Sphere) -> Self {
         Self::Sphere(s)
+    }
+}
+
+impl From<Rectangle> for Hittable {
+    fn from(r: Rectangle) -> Self {
+        Self::Rectangle(r)
     }
 }
 
@@ -29,6 +37,7 @@ impl Hit for Hittable {
     fn hit(&self, r: &Ray, s_min: f64, s_max: f64) -> Option<HitRecord> {
         match self {
             Self::Sphere(internal) => internal.hit(r, s_min, s_max),
+            Self::Rectangle(internal) => internal.hit(r, s_min, s_max),
             Self::BVH(internal) => internal.hit(r, s_min, s_max),
         }
     }
@@ -36,6 +45,7 @@ impl Hit for Hittable {
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         match self {
             Self::Sphere(internal) => internal.bounding_box(time0, time1),
+            Self::Rectangle(internal) => internal.bounding_box(time0, time1),
             Self::BVH(internal) => internal.bounding_box(time0, time1),
         }
     }

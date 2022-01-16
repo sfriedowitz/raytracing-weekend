@@ -19,14 +19,15 @@ use texture::{CheckerTexture, NoiseTexture};
 use crate::camera::Camera;
 use crate::color::{ray_color, Color, ColorFormat};
 use crate::hittable::HittableList;
-use crate::material::{Dielectric, Lambertian, Metal};
+use crate::material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::perlin::Perlin;
+use crate::rectangle::Rectangle;
 use crate::sphere::Sphere;
-use crate::texture::ImageTexture;
+use crate::texture::{ImageTexture, SolidColor};
 use crate::vec::{Vec3, VecOps};
 
 fn two_spheres() -> HittableList {
-    let texture = NoiseTexture::new(Perlin::new(256), 0.5);
+    let texture = NoiseTexture::new(Perlin::new(), 0.5);
     let sphere1 = Sphere::stationary(
         Vec3::new(0.0, -10.0, 0.0),
         10.0,
@@ -45,6 +46,19 @@ fn earth() -> HittableList {
     let earth_surface = Lambertian::new(earth_texture.into());
     let globe = Sphere::stationary(Vec3::new(0.0, 0.0, 0.0), 2.0, earth_surface.into());
     vec![globe.into()]
+}
+
+fn simple_light() -> HittableList {
+    let noise = NoiseTexture::new(Perlin::new(), 4.0);
+    let material = Lambertian::new(noise.into());
+
+    let sphere1 = Sphere::stationary(Vec3::new(0.0, -1000.0, 0.0), 1000.0, material.clone().into());
+    let sphere2 = Sphere::stationary(Vec3::new(0.0, 2.0, 0.0), 2.0, material.into());
+
+    let difflight = DiffuseLight::new(SolidColor::new(Color::new(4.0, 4.0, 4.0)).into());
+    let rectangle = Rectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, difflight.into());
+
+    vec![sphere1.into(), sphere2.into(), rectangle.into()]
 }
 
 fn random_scene() -> HittableList {
@@ -109,24 +123,23 @@ fn random_scene() -> HittableList {
 fn main() {
     // Image
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u64 = 400;
+    const IMAGE_WIDTH: u64 = 1024;
     const IMAGE_HEIGHT: u64 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u64;
-    const SAMPLES_PER_PIXEL: u64 = 100;
+    const SAMPLES_PER_PIXEL: u64 = 400;
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let world = two_spheres();
-    let background = Color::new(0.70, 0.80, 1.00);
+    let world = simple_light();
+    let background = Color::new(0.0, 0.0, 0.0);
 
     // Camera
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::new(0.0, 0.0, 0.0);
+    let lookfrom = Vec3::new(26.0, 3.0, 6.0);
+    let lookat = Vec3::new(0.0, 2.0, 0.0);
     let vup = Vec3::new(0.0, 1.0, 0.0);
-    let dist_to_focus = 10.0;
+    let vfov = 20.0;
     let aperture = 0.1;
 
-    let cam =
-        Camera::new(lookfrom, lookat, vup, 20.0, ASPECT_RATIO, aperture, dist_to_focus, 0.0, 1.0);
+    let cam = Camera::new(lookfrom, lookat, vup, 20.0, ASPECT_RATIO, aperture, vfov, 0.0, 1.0);
 
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
