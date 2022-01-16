@@ -22,7 +22,7 @@ use crate::color::{ray_color, Color, ColorFormat};
 use crate::hittable::HittableList;
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::perlin::Perlin;
-use crate::rectangle::XYRectangle;
+use crate::rectangle::{XYRectangle, XZRectangle, YZRectangle};
 use crate::sphere::Sphere;
 use crate::texture::{ImageTexture, SolidColor};
 use crate::vec::{Vec3, VecOps};
@@ -35,9 +35,7 @@ fn two_spheres() -> (HittableList, CameraOptions) {
     let sphere2 = Sphere::stationary(Vec3::new(0.0, 10.0, 0.0), 10.0, material.clone().into());
 
     let world = vec![sphere1.into(), sphere2.into()];
-
-    let mut opts: CameraOptions = Default::default();
-    opts.aperture = 0.1;
+    let opts = CameraOptions::new().with_aperture(0.1);
 
     (world, opts)
 }
@@ -50,7 +48,7 @@ fn earth() -> (HittableList, CameraOptions) {
     let globe = Sphere::stationary(Vec3::new(0.0, 0.0, 0.0), 2.0, earth_surface.into());
 
     let world = vec![globe.into()];
-    (world, Default::default())
+    (world, CameraOptions::new())
 }
 
 fn simple_light() -> (HittableList, CameraOptions) {
@@ -62,23 +60,39 @@ fn simple_light() -> (HittableList, CameraOptions) {
 
     let difflight = DiffuseLight::new(SolidColor::new(Color::new(4.0, 4.0, 4.0)).into());
     let rectangle = XYRectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, difflight.into());
-
     let world = vec![sphere1.into(), sphere2.into(), rectangle.into()];
-    let opts = CameraOptions {
-        background: Color::new(0.0, 0.0, 0.0),
-        lookfrom: Vec3::new(26.0, 0.0, 0.0),
-        lookat: Vec3::new(0.0, 2.0, 0.0),
-        vup: Vec3::new(0.0, 1.0, 0.0),
-        vfov: 20.0,
-        aperture: 0.1,
-        focus_dist: 10.0,
-    };
+
+    let opts = CameraOptions::new()
+        .with_background(Color::new(0.0, 0.0, 0.0))
+        .with_lookfrom(Vec3::new(26.0, 0.0, 0.0))
+        .with_lookat(Vec3::new(0.0, 2.0, 0.0))
+        .with_aperture(0.1);
 
     (world, opts)
 }
 
-fn cornell_box() -> HittableList {
-    todo!()
+fn cornell_box() -> (HittableList, CameraOptions) {
+    let red = Lambertian::new(SolidColor::new(Color::new(0.65, 0.05, 0.05)).into());
+    let white = Lambertian::new(SolidColor::new(Color::new(0.73, 0.73, 0.73)).into());
+    let green = Lambertian::new(SolidColor::new(Color::new(0.12, 0.45, 0.15)).into());
+    let light = DiffuseLight::new(SolidColor::new(Color::new(15.0, 15.0, 15.0)).into());
+
+    let mut world: HittableList = vec![];
+    world.push(YZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, green.into()).into());
+    world.push(YZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, red.into()).into());
+    world.push(XZRectangle::new(213.0, 343.0, 227.0, 332.0, 554.0, light.into()).into());
+    world.push(XZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, white.clone().into()).into());
+    world.push(XZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone().into()).into());
+    world.push(XYRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.into()).into());
+
+    let opts = CameraOptions::new()
+        .with_background(Color::new(0.0, 0.0, 0.0))
+        .with_lookfrom(Vec3::new(278.0, 278.0, -800.0))
+        .with_lookat(Vec3::new(278.0, 278.0, 0.0))
+        .with_vfov(40.0)
+        .with_apsect_ratio(1.0);
+
+    (world, opts)
 }
 
 fn random_scene() -> (HittableList, CameraOptions) {
@@ -137,19 +151,18 @@ fn random_scene() -> (HittableList, CameraOptions) {
     objects.push(sphere2.into());
     objects.push(sphere3.into());
 
-    (objects, Default::default())
+    (objects, CameraOptions::new())
 }
 
 fn main() {
-    // Image
-    const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u64 = 512;
-    const IMAGE_HEIGHT: u64 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u64;
-    const SAMPLES_PER_PIXEL: u64 = 50;
-    const MAX_DEPTH: u64 = 50;
+    // World & options
+    let (world, opts) = cornell_box();
 
-    // World
-    let (world, opts) = two_spheres();
+    // Image
+    let image_width: u64 = 600;
+    let image_height: u64 = ((image_width as f64) / opts.aspect_ratio) as u64;
+    let samples_per_pixel: u64 = 200;
+    let max_depth: u64 = 50;
 
     // Camera
     let cam = Camera::new(
@@ -159,32 +172,32 @@ fn main() {
         opts.vfov,
         opts.aperture,
         opts.focus_dist,
-        ASPECT_RATIO,
+        opts.aspect_ratio,
         0.0,
         1.0,
     );
 
     println!("P3");
-    println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
+    println!("{} {}", image_width, image_height);
     println!("255");
 
-    for j in (0..IMAGE_HEIGHT).rev() {
+    for j in (0..image_height).rev() {
         eprintln!("Scanlines remaining: {}", j + 1);
 
-        let scanline: Vec<Color> = (0..IMAGE_WIDTH)
+        let scanline: Vec<Color> = (0..image_width)
             .into_par_iter()
             .map(|i| {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..SAMPLES_PER_PIXEL {
+                for _ in 0..samples_per_pixel {
                     let mut rng = rand::thread_rng();
                     let random_u: f64 = rng.gen();
                     let random_v: f64 = rng.gen();
 
-                    let u = ((i as f64) + random_u) / ((IMAGE_WIDTH - 1) as f64);
-                    let v = ((j as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64);
+                    let u = ((i as f64) + random_u) / ((image_width - 1) as f64);
+                    let v = ((j as f64) + random_v) / ((image_height - 1) as f64);
 
                     let r = cam.get_ray(u, v);
-                    pixel_color += ray_color(&r, &world, opts.background, MAX_DEPTH);
+                    pixel_color += ray_color(&r, &world, opts.background, max_depth);
                 }
 
                 pixel_color
@@ -192,7 +205,7 @@ fn main() {
             .collect();
 
         for pixel_color in scanline {
-            println!("{}", pixel_color.format_color(SAMPLES_PER_PIXEL));
+            println!("{}", pixel_color.format_color(samples_per_pixel));
         }
     }
 
