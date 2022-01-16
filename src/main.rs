@@ -21,6 +21,7 @@ use crate::hittable::HittableList;
 use crate::material::{Dielectric, Lambertian, Metal};
 use crate::perlin::Perlin;
 use crate::sphere::Sphere;
+use crate::texture::ImageTexture;
 use crate::vec::{Vec3, VecOps};
 
 fn two_spheres() -> HittableList {
@@ -34,6 +35,15 @@ fn two_spheres() -> HittableList {
         Sphere::stationary(Vec3::new(0.0, 10.0, 0.0), 10.0, Lambertian::new(texture.into()).into());
 
     vec![sphere1.into(), sphere2.into()]
+}
+
+fn earth() -> HittableList {
+    let path =
+        "/home/sfriedowitz/development/rust/raytracing_weekend/images/texture_earth_clouds.jpg";
+    let earth_texture = ImageTexture::new(path);
+    let earth_surface = Lambertian::new(earth_texture.into());
+    let globe = Sphere::stationary(Vec3::new(0.0, 0.0, 0.0), 2.0, earth_surface.into());
+    vec![globe.into()]
 }
 
 fn random_scene() -> HittableList {
@@ -104,7 +114,7 @@ fn main() {
     const MAX_DEPTH: u64 = 50;
 
     // World
-    let world = two_spheres();
+    let world = earth();
 
     // Camera
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
