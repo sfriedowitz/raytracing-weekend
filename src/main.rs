@@ -18,8 +18,6 @@ mod texture;
 mod translate;
 mod vec;
 
-use material::Isotropic;
-use medium::ConstantMedium;
 use rand::Rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -28,7 +26,8 @@ use crate::camera::{Camera, ViewOptions};
 use crate::color::{ray_color, Color, ColorFormat};
 use crate::cuboid::Cuboid;
 use crate::hittable::HittableList;
-use crate::material::{Dielectric, DiffuseLight, Lambertian, Metal};
+use crate::material::{Dielectric, DiffuseLight, Isotropic, Lambertian, Metal};
+use crate::medium::ConstantMedium;
 use crate::perlin::Perlin;
 use crate::rectangle::{XYRectangle, XZRectangle, YZRectangle};
 use crate::rotate::RotateY;
