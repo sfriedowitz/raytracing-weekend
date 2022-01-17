@@ -17,8 +17,8 @@ pub struct XYRectangle {
 }
 
 impl XYRectangle {
-    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, material: Material) -> Self {
-        Self { x0, x1, y0, y1, k, material }
+    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, material: impl Into<Material>) -> Self {
+        Self { x0, x1, y0, y1, k, material: material.into() }
     }
 }
 
@@ -66,8 +66,8 @@ pub struct XZRectangle {
 }
 
 impl XZRectangle {
-    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k: f64, material: Material) -> Self {
-        Self { x0, x1, z0, z1, k, material }
+    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k: f64, material: impl Into<Material>) -> Self {
+        Self { x0, x1, z0, z1, k, material: material.into() }
     }
 }
 
@@ -115,8 +115,8 @@ pub struct YZRectangle {
 }
 
 impl YZRectangle {
-    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, material: Material) -> Self {
-        Self { y0, y1, z0, z1, k, material }
+    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, material: impl Into<Material>) -> Self {
+        Self { y0, y1, z0, z1, k, material: material.into() }
     }
 }
 

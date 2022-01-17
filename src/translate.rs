@@ -13,8 +13,8 @@ pub struct Translate {
 }
 
 impl Translate {
-    pub fn new(object: Box<Hittable>, offset: Vec3) -> Self {
-        Self { object, offset }
+    pub fn new(object: impl Into<Hittable>, offset: Vec3) -> Self {
+        Self { object: Box::new(object.into()), offset }
     }
 }
 

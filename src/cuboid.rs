@@ -16,15 +16,16 @@ pub struct Cuboid {
 }
 
 impl Cuboid {
-    pub fn new(min: Vec3, max: Vec3, material: Material) -> Self {
-        let sides = vec![
-            XYRectangle::new(min.x, max.x, min.y, max.y, max.z, material.clone()).into(),
-            XYRectangle::new(min.x, max.x, min.y, max.y, min.z, material.clone()).into(),
-            XZRectangle::new(min.x, max.x, min.z, max.z, max.y, material.clone()).into(),
-            XZRectangle::new(min.x, max.x, min.z, max.z, min.y, material.clone()).into(),
-            YZRectangle::new(min.y, max.y, min.z, max.z, max.x, material.clone()).into(),
-            YZRectangle::new(min.y, max.y, min.z, max.z, min.x, material).into(),
-        ];
+    pub fn new(min: Vec3, max: Vec3, material: impl Into<Material>) -> Self {
+        let mat = material.into();
+
+        let mut sides = HittableList::new();
+        sides.push(XYRectangle::new(min.x, max.x, min.y, max.y, max.z, mat.clone()));
+        sides.push(XYRectangle::new(min.x, max.x, min.y, max.y, min.z, mat.clone()));
+        sides.push(XZRectangle::new(min.x, max.x, min.z, max.z, max.y, mat.clone()));
+        sides.push(XZRectangle::new(min.x, max.x, min.z, max.z, min.y, mat.clone()));
+        sides.push(YZRectangle::new(min.y, max.y, min.z, max.z, max.x, mat.clone()));
+        sides.push(YZRectangle::new(min.y, max.y, min.z, max.z, min.x, mat.clone()));
         Self { min, max, sides }
     }
 

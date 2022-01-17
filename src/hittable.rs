@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::{
     aabb::AABB,
     bvh::BVH,
@@ -110,7 +112,72 @@ impl Hit for Hittable {
 }
 
 /// Container for a collection of hittable objects.
-pub type HittableList = Vec<Hittable>;
+#[derive(Clone, Debug)]
+pub struct HittableList {
+    objects: Vec<Hittable>,
+}
+
+impl HittableList {
+    pub fn new() -> Self {
+        Self { objects: vec![] }
+    }
+
+    pub fn from_vec(objects: Vec<Hittable>) -> Self {
+        Self { objects }
+    }
+
+    pub fn objects(&self) -> &Vec<Hittable> {
+        &self.objects
+    }
+
+    pub fn objects_owned(self) -> Vec<Hittable> {
+        self.objects
+    }
+
+    pub fn len(&self) -> usize {
+        self.objects.len()
+    }
+
+    pub fn push(&mut self, object: impl Into<Hittable>) {
+        self.objects.push(object.into());
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Hittable> {
+        self.objects.iter()
+    }
+}
+
+impl From<Vec<Hittable>> for HittableList {
+    fn from(objects: Vec<Hittable>) -> Self {
+        Self::from_vec(objects)
+    }
+}
+
+impl Deref for HittableList {
+    type Target = [Hittable];
+
+    fn deref(&self) -> &Self::Target {
+        &self.objects
+    }
+}
+
+impl IntoIterator for HittableList {
+    type Item = Hittable;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.objects.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a HittableList {
+    type Item = &'a Hittable;
+    type IntoIter = std::slice::Iter<'a, Hittable>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.objects.as_slice().into_iter()
+    }
+}
 
 impl Hit for HittableList {
     fn hit(&self, r: &Ray, s_min: f64, s_max: f64) -> Option<HitRecord> {
@@ -128,7 +195,7 @@ impl Hit for HittableList {
     }
 
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
-        match self.first() {
+        match self.objects.first() {
             // We have at least one element to create a box for
             Some(hittable) => match hittable.bounding_box(time0, time1) {
                 // Accumulate the box by combining for each object

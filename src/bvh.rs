@@ -16,10 +16,11 @@ pub enum BVH {
 }
 
 impl BVH {
-    pub fn new(mut objects: HittableList, time0: f64, time1: f64) -> Self {
+    pub fn new(hittables: HittableList, time0: f64, time1: f64) -> Self {
         let mut rng = rand::thread_rng();
         let axis_cmp: usize = rng.gen_range(0..2);
 
+        let mut objects = hittables.objects_owned();
         let comparator =
             |a: &Hittable, b: &Hittable| Self::box_compare(a, b, time0, time1, axis_cmp);
         objects.sort_unstable_by(comparator);
@@ -33,8 +34,13 @@ impl BVH {
                 Self::Leaf { object: Box::new(object), bbox }
             }
             _ => {
-                let right = Self::new(objects.drain(n / 2..).collect(), time0, time1);
-                let left = Self::new(objects, time0, time1);
+                let right_objects: Vec<Hittable> = objects.drain(n / 2..).collect();
+                let right_list = HittableList::from(right_objects);
+                let right = Self::new(right_list, time0, time1);
+
+                let left_list = HittableList::from(objects);
+                let left = Self::new(left_list, time0, time1);
+
                 let bbox = AABB::surrounding_box(left.get_box(), right.get_box());
 
                 Self::Internal { left: Box::new(left.into()), right: Box::new(right.into()), bbox }

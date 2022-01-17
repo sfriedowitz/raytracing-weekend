@@ -73,14 +73,12 @@ pub struct CheckerTexture {
 }
 
 impl CheckerTexture {
-    pub fn new(even: Box<Texture>, odd: Box<Texture>) -> Self {
-        Self { even, odd }
+    pub fn new(even: impl Into<Texture>, odd: impl Into<Texture>) -> Self {
+        Self { even: Box::new(even.into()), odd: Box::new(odd.into()) }
     }
 
     pub fn from_colors(even: Color, odd: Color) -> Self {
-        let even = Box::new(SolidColor::new(even).into());
-        let odd = Box::new(SolidColor::new(odd).into());
-        Self::new(even, odd)
+        Self::new(SolidColor::new(even), SolidColor::new(odd))
     }
 }
 

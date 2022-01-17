@@ -28,12 +28,12 @@ impl Sphere {
         time0: f64,
         time1: f64,
         radius: f64,
-        material: Material,
+        material: impl Into<Material>,
     ) -> Self {
-        Self { center0, center1, time0, time1, radius, material }
+        Self { center0, center1, time0, time1, radius, material: material.into() }
     }
 
-    pub fn stationary(center: Vec3, radius: f64, material: Material) -> Self {
+    pub fn stationary(center: Vec3, radius: f64, material: impl Into<Material>) -> Self {
         Self::new(center, center, 0.0, 0.0, radius, material)
     }
 

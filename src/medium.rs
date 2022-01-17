@@ -16,9 +16,13 @@ pub struct ConstantMedium {
 }
 
 impl ConstantMedium {
-    pub fn new(boundary: Box<Hittable>, phase_function: Material, d: f64) -> Self {
+    pub fn new(boundary: impl Into<Hittable>, phase_function: impl Into<Material>, d: f64) -> Self {
         let neg_inv_density = -1.0 / d;
-        Self { boundary, phase_function, neg_inv_density }
+        Self {
+            boundary: Box::new(boundary.into()),
+            phase_function: phase_function.into(),
+            neg_inv_density,
+        }
     }
 }
 

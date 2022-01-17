@@ -87,14 +87,14 @@ pub struct Lambertian {
 }
 
 impl Lambertian {
-    pub fn new(texture: Texture) -> Self {
-        Self { albedo: texture }
+    pub fn new(texture: impl Into<Texture>) -> Self {
+        Self { albedo: texture.into() }
     }
 }
 
 impl From<Color> for Lambertian {
     fn from(color: Color) -> Self {
-        Self::new(SolidColor::new(color).into())
+        Self::new(SolidColor::new(color))
     }
 }
 
@@ -191,14 +191,14 @@ pub struct DiffuseLight {
 }
 
 impl DiffuseLight {
-    pub fn new(emit: Texture) -> Self {
-        Self { emit }
+    pub fn new(emit: impl Into<Texture>) -> Self {
+        Self { emit: emit.into() }
     }
 }
 
 impl From<Color> for DiffuseLight {
     fn from(color: Color) -> Self {
-        Self::new(SolidColor::new(color).into())
+        Self::new(SolidColor::new(color))
     }
 }
 
@@ -219,14 +219,14 @@ pub struct Isotropic {
 }
 
 impl Isotropic {
-    pub fn new(texture: Texture) -> Self {
-        Self { albedo: texture }
+    pub fn new(texture: impl Into<Texture>) -> Self {
+        Self { albedo: texture.into() }
     }
 }
 
 impl From<Color> for Isotropic {
     fn from(color: Color) -> Self {
-        Self::new(SolidColor::new(color).into())
+        Self::new(SolidColor::new(color))
     }
 }
 

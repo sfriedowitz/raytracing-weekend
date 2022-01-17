@@ -15,7 +15,9 @@ pub struct RotateY {
 }
 
 impl RotateY {
-    pub fn new(object: Box<Hittable>, angle: f64) -> Self {
+    pub fn new(object: impl Into<Hittable>, angle: f64) -> Self {
+        let object = Box::new(object.into());
+
         let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
