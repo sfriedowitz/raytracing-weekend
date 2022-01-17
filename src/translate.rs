@@ -32,11 +32,8 @@ impl Hit for Translate {
     }
 
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
-        match self.object.bounding_box(time0, time1) {
-            Some(base_box) => {
-                Some(AABB::new(base_box.min() + self.offset, base_box.max() + self.offset))
-            }
-            None => None,
-        }
+        self.object
+            .bounding_box(time0, time1)
+            .map(|base_box| AABB::new(base_box.min() + self.offset, base_box.max() + self.offset))
     }
 }

@@ -115,7 +115,7 @@ fn cornell_smoke() -> (HittableList, ViewOptions) {
         YZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, red.into()).into(),
         XZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, white.clone().into()).into(),
         XZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone().into()).into(),
-        XYRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone().into()).into(),
+        XYRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.into()).into(),
         XZRectangle::new(113.0, 443.0, 127.0, 432.0, 554.0, light.into()).into(),
         box1.into(),
         box2.into(),
@@ -158,8 +158,7 @@ fn final_scene() -> (HittableList, ViewOptions) {
     }
 
     // Start adding objects to main scene
-    let mut objects = HittableList::new();
-    objects.push(BVH::new(boxes1, 0.0, 1.0).into());
+    let mut objects = vec![BVH::new(boxes1, 0.0, 1.0).into()];
 
     let light = DiffuseLight::from(Color::new(7.0, 7.0, 7.0));
     let light_rect = XZRectangle::new(123.0, 423.0, 147.0, 412.0, 554.0, light.into());
