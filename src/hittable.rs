@@ -3,6 +3,7 @@ use crate::{
     bvh::BVH,
     cuboid::Cuboid,
     hit::{Hit, HitRecord},
+    medium::ConstantMedium,
     ray::Ray,
     rectangle::{XYRectangle, XZRectangle, YZRectangle},
     rotate::RotateY,
@@ -20,6 +21,7 @@ pub enum Hittable {
     Cuboid(Cuboid),
     Translate(Translate),
     RotateY(RotateY),
+    ConstantMedium(ConstantMedium),
     BVH(BVH),
 }
 
@@ -65,6 +67,12 @@ impl From<RotateY> for Hittable {
     }
 }
 
+impl From<ConstantMedium> for Hittable {
+    fn from(inner: ConstantMedium) -> Self {
+        Self::ConstantMedium(inner)
+    }
+}
+
 impl From<BVH> for Hittable {
     fn from(inner: BVH) -> Self {
         Self::BVH(inner)
@@ -81,6 +89,7 @@ impl Hit for Hittable {
             Self::Cuboid(inner) => inner.hit(r, s_min, s_max),
             Self::Translate(inner) => inner.hit(r, s_min, s_max),
             Self::RotateY(inner) => inner.hit(r, s_min, s_max),
+            Self::ConstantMedium(inner) => inner.hit(r, s_min, s_max),
             Self::BVH(inner) => inner.hit(r, s_min, s_max),
         }
     }
@@ -94,6 +103,7 @@ impl Hit for Hittable {
             Self::Cuboid(inner) => inner.bounding_box(time0, time1),
             Self::Translate(inner) => inner.bounding_box(time0, time1),
             Self::RotateY(inner) => inner.bounding_box(time0, time1),
+            Self::ConstantMedium(inner) => inner.bounding_box(time0, time1),
             Self::BVH(inner) => inner.bounding_box(time0, time1),
         }
     }

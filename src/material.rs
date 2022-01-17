@@ -25,6 +25,7 @@ pub enum Material {
     Metal(Metal),
     Dielectric(Dielectric),
     DiffuseLight(DiffuseLight),
+    Isotropic(Isotropic),
 }
 
 impl From<Lambertian> for Material {
@@ -51,6 +52,12 @@ impl From<DiffuseLight> for Material {
     }
 }
 
+impl From<Isotropic> for Material {
+    fn from(material: Isotropic) -> Self {
+        Self::Isotropic(material)
+    }
+}
+
 impl Scatter for Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
         match self {
@@ -58,6 +65,7 @@ impl Scatter for Material {
             Self::Metal(inner) => inner.scatter(r_in, rec),
             Self::Dielectric(inner) => inner.scatter(r_in, rec),
             Self::DiffuseLight(inner) => inner.scatter(r_in, rec),
+            Self::Isotropic(inner) => inner.scatter(r_in, rec),
         }
     }
 
@@ -67,6 +75,7 @@ impl Scatter for Material {
             Self::Metal(inner) => inner.emitted(point, u, v),
             Self::Dielectric(inner) => inner.emitted(point, u, v),
             Self::DiffuseLight(inner) => inner.emitted(point, u, v),
+            Self::Isotropic(inner) => inner.emitted(point, u, v),
         }
     }
 }
@@ -80,10 +89,6 @@ pub struct Lambertian {
 impl Lambertian {
     pub fn new(texture: Texture) -> Self {
         Self { albedo: texture }
-    }
-
-    pub fn from_color(color: Color) -> Self {
-        Self::new(SolidColor::new(color).into())
     }
 }
 
@@ -179,6 +184,7 @@ impl Scatter for Dielectric {
     }
 }
 
+/// A material that emits a constant color of light.
 #[derive(Clone, Debug)]
 pub struct DiffuseLight {
     emit: Texture,
@@ -203,5 +209,31 @@ impl Scatter for DiffuseLight {
 
     fn emitted(&self, point: Vec3, u: f64, v: f64) -> Color {
         self.emit.color_value(point, u, v)
+    }
+}
+
+/// A material with a scattering function that picks a uniform random direction.
+#[derive(Clone, Debug)]
+pub struct Isotropic {
+    albedo: Texture,
+}
+
+impl Isotropic {
+    pub fn new(texture: Texture) -> Self {
+        Self { albedo: texture }
+    }
+}
+
+impl From<Color> for Isotropic {
+    fn from(color: Color) -> Self {
+        Self::new(SolidColor::new(color).into())
+    }
+}
+
+impl Scatter for Isotropic {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+        let scatered = Ray::new(rec.point, Vec3::random_in_unit_sphere(), r_in.time());
+        let attenuation = self.albedo.color_value(rec.point, rec.u, rec.v);
+        Some((attenuation, scatered))
     }
 }

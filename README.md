@@ -15,4 +15,4 @@ with some small twists for personal preference and optimization.
 ## Final Scenes
 
 ### Part 1
-![partime1_random scene](https://github.com/sfriedowitz/raytracing-weekend/blob/main/images/part1_random_scene.png)
+![partime1_random scene](https://github.com/sfriedowitz/raytracing-weekend/blob/main/images/scene_part1_random.png)
