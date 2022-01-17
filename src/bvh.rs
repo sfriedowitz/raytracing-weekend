@@ -47,7 +47,7 @@ impl BVH {
         let b_box = b.bounding_box(time0, time1);
 
         if let (Some(ab), Some(bb)) = (a_box, b_box) {
-            return ab.minimum()[axis].partial_cmp(&bb.minimum()[axis]).unwrap();
+            return ab.min()[axis].partial_cmp(&bb.min()[axis]).unwrap();
         };
 
         panic!("Cannot construct bounding box for objects in BVH node constructor.")

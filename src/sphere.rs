@@ -48,7 +48,7 @@ impl Sphere {
     }
 
     pub fn get_uv(point: Vec3) -> (f64, f64) {
-        // point: a given point on the sphere of radius one, centered at the origin.
+        // Point: a given point on the sphere of radius one, centered at the origin.
         // u: returned value [0,1] of angle around the Y axis from X=-1.
         // v: returned value [0,1] of angle from Y=-1 to Y=+1.
         //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>

@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use rand::Rng;
 
 use crate::{
@@ -6,8 +8,8 @@ use crate::{
     vec::{Vec3, VecOps},
 };
 
-#[derive(Clone, Copy, Debug)]
-pub struct CameraOptions {
+#[derive(Clone, Debug)]
+pub struct ViewOptions {
     pub background: Color,
     pub lookfrom: Vec3,
     pub lookat: Vec3,
@@ -15,12 +17,15 @@ pub struct CameraOptions {
     pub vfov: f64,
     pub aperture: f64,
     pub focus_dist: f64,
+    pub shutter_time: Range<f64>,
     pub aspect_ratio: f64,
-    pub time0: f64,
-    pub time1: f64,
+    pub image_width: u64,
+    pub image_height: u64,
+    pub samples_per_pixel: u64,
+    pub max_depth: u64,
 }
 
-impl CameraOptions {
+impl ViewOptions {
     pub fn new() -> Self {
         Default::default()
     }
@@ -60,23 +65,35 @@ impl CameraOptions {
         self
     }
 
+    pub fn with_shutter_time(mut self, time0: f64, time1: f64) -> Self {
+        self.shutter_time = time0..time1;
+        self
+    }
+
     pub fn with_apsect_ratio(mut self, aspect_ratio: f64) -> Self {
         self.aspect_ratio = aspect_ratio;
+        self.image_height = ((self.image_width as f64) / self.aspect_ratio) as u64;
         self
     }
 
-    pub fn with_time0(mut self, time0: f64) -> Self {
-        self.time0 = time0;
+    pub fn with_image_width(mut self, image_width: u64) -> Self {
+        self.image_width = image_width;
+        self.image_height = ((image_width as f64) / self.aspect_ratio) as u64;
         self
     }
 
-    pub fn with_time1(mut self, time1: f64) -> Self {
-        self.time1 = time1;
+    pub fn with_samples_per_pixel(mut self, samples_per_pixel: u64) -> Self {
+        self.samples_per_pixel = samples_per_pixel;
+        self
+    }
+
+    pub fn with_max_depth(mut self, max_depth: u64) -> Self {
+        self.max_depth = max_depth;
         self
     }
 }
 
-impl Default for CameraOptions {
+impl Default for ViewOptions {
     fn default() -> Self {
         Self {
             background: Color::new(1.0, 1.0, 1.0),
@@ -86,14 +103,17 @@ impl Default for CameraOptions {
             vfov: 20.0,
             aperture: 0.1,
             focus_dist: 10.0,
+            shutter_time: (0.0..1.0),
             aspect_ratio: 16.0 / 9.0,
-            time0: 0.0,
-            time1: 1.0,
+            image_width: 512,
+            image_height: (512.0 * 9.0 / 16.0) as u64,
+            samples_per_pixel: 200,
+            max_depth: 50,
         }
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct Camera {
     origin: Vec3,
     lower_left_corner: Vec3,
@@ -102,8 +122,7 @@ pub struct Camera {
     cu: Vec3,
     cv: Vec3,
     lens_radius: f64,
-    time0: f64,
-    time1: f64,
+    shutter_time: Range<f64>,
 }
 
 impl Camera {
@@ -115,8 +134,7 @@ impl Camera {
         aperture: f64,
         focus_dist: f64,
         aspect_ratio: f64,
-        time0: f64,
-        time1: f64,
+        shutter_time: Range<f64>,
     ) -> Self {
         // Vertical field-of-view in degrees
         let theta = std::f64::consts::PI / 180.0 * vfov;
@@ -139,12 +157,11 @@ impl Camera {
             lens_radius: aperture / 2.0,
             cu,
             cv,
-            time0,
-            time1,
+            shutter_time,
         }
     }
 
-    pub fn from_options(opts: CameraOptions) -> Self {
+    pub fn from_options(opts: &ViewOptions) -> Self {
         Self::new(
             opts.lookfrom,
             opts.lookat,
@@ -153,8 +170,7 @@ impl Camera {
             opts.aperture,
             opts.focus_dist,
             opts.aspect_ratio,
-            opts.time0,
-            opts.time1,
+            opts.shutter_time.clone(),
         )
     }
 
@@ -167,7 +183,7 @@ impl Camera {
         Ray::new(
             self.origin + offset,
             self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
-            rng.gen_range(self.time0..self.time1),
+            rng.gen_range(self.shutter_time.clone()),
         )
     }
 }

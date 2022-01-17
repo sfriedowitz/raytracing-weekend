@@ -4,31 +4,36 @@ mod aabb;
 mod bvh;
 mod camera;
 mod color;
-mod cornell;
+mod cuboid;
 mod hit;
 mod hittable;
 mod material;
 mod perlin;
 mod ray;
 mod rectangle;
+mod rotate;
 mod sphere;
 mod texture;
+mod translate;
 mod vec;
 
 use rand::Rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::camera::{Camera, CameraOptions};
+use crate::camera::{Camera, ViewOptions};
 use crate::color::{ray_color, Color, ColorFormat};
+use crate::cuboid::Cuboid;
 use crate::hittable::HittableList;
 use crate::material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::perlin::Perlin;
 use crate::rectangle::{XYRectangle, XZRectangle, YZRectangle};
+use crate::rotate::RotateY;
 use crate::sphere::Sphere;
 use crate::texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor};
+use crate::translate::Translate;
 use crate::vec::{Vec3, VecOps};
 
-fn two_spheres() -> (HittableList, CameraOptions) {
+fn two_spheres() -> (HittableList, ViewOptions) {
     let texture = NoiseTexture::new(Perlin::new(), 0.5);
     let material = Lambertian::new(texture.into());
 
@@ -36,22 +41,22 @@ fn two_spheres() -> (HittableList, CameraOptions) {
     let sphere2 = Sphere::stationary(Vec3::new(0.0, 10.0, 0.0), 10.0, material.into());
 
     let world = vec![sphere1.into(), sphere2.into()];
-    let opts = CameraOptions::new().with_aperture(0.1);
+    let opts = ViewOptions::new().with_aperture(0.1);
 
     (world, opts)
 }
 
-fn earth() -> (HittableList, CameraOptions) {
+fn earth() -> (HittableList, ViewOptions) {
     let path = "${INSERT_PATH_HERE}/images/texture_earth_clouds.jpg";
     let earth_texture = ImageTexture::new(path);
     let earth_surface = Lambertian::new(earth_texture.into());
     let globe = Sphere::stationary(Vec3::new(0.0, 0.0, 0.0), 2.0, earth_surface.into());
 
     let world = vec![globe.into()];
-    (world, CameraOptions::new())
+    (world, ViewOptions::new())
 }
 
-fn simple_light() -> (HittableList, CameraOptions) {
+fn simple_light() -> (HittableList, ViewOptions) {
     let noise = NoiseTexture::new(Perlin::new(), 4.0);
     let material = Lambertian::new(noise.into());
 
@@ -62,7 +67,7 @@ fn simple_light() -> (HittableList, CameraOptions) {
     let rectangle = XYRectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, difflight.into());
     let world = vec![sphere1.into(), sphere2.into(), rectangle.into()];
 
-    let opts = CameraOptions::new()
+    let opts = ViewOptions::new()
         .with_background(Color::new(0.0, 0.0, 0.0))
         .with_lookfrom(Vec3::new(26.0, 0.0, 0.0))
         .with_lookat(Vec3::new(0.0, 2.0, 0.0))
@@ -71,22 +76,39 @@ fn simple_light() -> (HittableList, CameraOptions) {
     (world, opts)
 }
 
-fn cornell_box() -> (HittableList, CameraOptions) {
+fn cornell_box() -> (HittableList, ViewOptions) {
     let red = Lambertian::new(SolidColor::new(Color::new(0.65, 0.05, 0.05)).into());
     let white = Lambertian::new(SolidColor::new(Color::new(0.73, 0.73, 0.73)).into());
     let green = Lambertian::new(SolidColor::new(Color::new(0.12, 0.45, 0.15)).into());
     let light = DiffuseLight::new(SolidColor::new(Color::new(15.0, 15.0, 15.0)).into());
+
+    let box1 =
+        Cuboid::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(165.0, 330.0, 165.0), white.clone().into());
+    let box2 =
+        Cuboid::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(165.0, 165.0, 165.0), white.clone().into());
 
     let world: HittableList = vec![
         YZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, green.into()).into(),
         YZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, red.into()).into(),
         XZRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, white.clone().into()).into(),
         XZRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone().into()).into(),
-        XYRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.into()).into(),
+        XYRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone().into()).into(),
         XZRectangle::new(213.0, 343.0, 227.0, 332.0, 554.0, light.into()).into(),
+        Translate::new(
+            Box::new(RotateY::new(Box::new(box1.into()), 15.0).into()),
+            //Box::new(box1.into()),
+            Vec3::new(265.0, 0.0, 295.0),
+        )
+        .into(),
+        Translate::new(
+            Box::new(RotateY::new(Box::new(box2.into()), -18.0).into()),
+            //Box::new(box2.into()),
+            Vec3::new(130.0, 0.0, 65.0),
+        )
+        .into(),
     ];
 
-    let opts = CameraOptions::new()
+    let opts = ViewOptions::new()
         .with_background(Color::new(0.0, 0.0, 0.0))
         .with_lookfrom(Vec3::new(278.0, 278.0, -800.0))
         .with_lookat(Vec3::new(278.0, 278.0, 0.0))
@@ -97,7 +119,7 @@ fn cornell_box() -> (HittableList, CameraOptions) {
     (world, opts)
 }
 
-fn random_scene() -> (HittableList, CameraOptions) {
+fn random_scene() -> (HittableList, ViewOptions) {
     let mut rng = rand::thread_rng();
     let mut objects = HittableList::new();
 
@@ -153,43 +175,37 @@ fn random_scene() -> (HittableList, CameraOptions) {
     objects.push(sphere2.into());
     objects.push(sphere3.into());
 
-    (objects, CameraOptions::new())
+    (objects, ViewOptions::new())
 }
 
 fn main() {
-    // World & options
+    // World & view options
     let (world, opts) = cornell_box();
 
-    // Image
-    let image_width: u64 = 600;
-    let image_height: u64 = ((image_width as f64) / opts.aspect_ratio) as u64;
-    let samples_per_pixel: u64 = 500;
-    let max_depth: u64 = 50;
-
     // Camera
-    let cam = Camera::from_options(opts);
+    let cam = Camera::from_options(&opts);
 
     println!("P3");
-    println!("{} {}", image_width, image_height);
+    println!("{} {}", opts.image_width, opts.image_height);
     println!("255");
 
-    for j in (0..image_height).rev() {
+    for j in (0..opts.image_height).rev() {
         eprintln!("Scanlines remaining: {}", j + 1);
 
-        let scanline: Vec<Color> = (0..image_width)
+        let scanline: Vec<Color> = (0..opts.image_width)
             .into_par_iter()
             .map(|i| {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..samples_per_pixel {
+                for _ in 0..opts.samples_per_pixel {
                     let mut rng = rand::thread_rng();
                     let random_u: f64 = rng.gen();
                     let random_v: f64 = rng.gen();
 
-                    let u = ((i as f64) + random_u) / ((image_width - 1) as f64);
-                    let v = ((j as f64) + random_v) / ((image_height - 1) as f64);
+                    let u = ((i as f64) + random_u) / ((opts.image_width - 1) as f64);
+                    let v = ((j as f64) + random_v) / ((opts.image_height - 1) as f64);
 
                     let r = cam.get_ray(u, v);
-                    pixel_color += ray_color(&r, &world, opts.background, max_depth);
+                    pixel_color += ray_color(&r, &world, opts.background, opts.max_depth);
                 }
 
                 pixel_color
@@ -197,7 +213,7 @@ fn main() {
             .collect();
 
         for pixel_color in scanline {
-            println!("{}", pixel_color.format_color(samples_per_pixel));
+            println!("{}", pixel_color.format_color(opts.samples_per_pixel));
         }
     }
 
