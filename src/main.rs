@@ -242,7 +242,7 @@ fn final_scene() -> (HittableList, ViewOptions) {
     let opts = ViewOptions::new()
         .with_apsect_ratio(1.0)
         .with_image_width(800)
-        .with_samples_per_pixel(50)
+        .with_samples_per_pixel(10000)
         .with_background(Color::new(0.0, 0.0, 0.0))
         .with_lookfrom(Vec3::new(478.0, 278.0, -600.0))
         .with_lookat(Vec3::new(278.0, 278.0, 0.0))
